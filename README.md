@@ -1,3 +1,3 @@
 # DS-Seminar
 
-  > *Topics*
+*Topics*
