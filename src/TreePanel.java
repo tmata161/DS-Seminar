@@ -20,8 +20,8 @@ public class TreePanel extends JPanel {
     private static final int AVL_DIAMETER = 54;
     private static final int AVL_GAP = 92;
     private static final int TOP_MARGIN = 60;
-    private static final int LEVEL_GAP = 112;
-    private static final int B_KEY_WIDTH = 52;
+    private static final int LEVEL_GAP = 110;
+    private static final int B_KEY_WIDTH = 60;
     private static final int B_KEY_HEIGHT = 38;
     private static final int B_KEY_SPACING = 60;
     //private static final int B_NODE_GAP = 2;
@@ -103,15 +103,8 @@ public class TreePanel extends JPanel {
         repaint();
     }
 
-    public void setHighlightedKeys(Set<Integer> keys) {
-        this.highlightedKey = null;
-        this.highlightedKeys.clear();
-        if (keys != null) this.highlightedKeys.addAll(keys);
-        repaint();
-    }
-
-    private boolean isHighlighted(AVLTree.Node key) {
-        return (highlightedKey != null && highlightedKey == key.key) || highlightedKeys.contains(key.key);
+    private boolean isHighlighted(int key) {
+        return (highlightedKey != null && highlightedKey == key) || highlightedKeys.contains(key);
     }
 
     public void clearTree() {
@@ -131,6 +124,7 @@ public class TreePanel extends JPanel {
         if ("AVL Tree".equals(treeType)) {
             width = Math.max(700, 110 + avlCount(avlRoot) * AVL_GAP);
             depth = avlDepth(avlRoot);
+            System.out.println("width: "+width+"\ndepth: "+depth);
         } else if ("B-Tree".equals(treeType)) {
             width = Math.max(700, 2 * B_LEFT_MARGIN + Math.max(1, bTreeSize(bTreeRoot)) * B_KEY_SPACING);
             depth = bTreeDepth(bTreeRoot);
@@ -143,14 +137,17 @@ public class TreePanel extends JPanel {
         setPreferredSize(new Dimension(width, height));
     }
 
+    //recursively counts the width
     private int avlCount(AVLTree.Node node) {
         return node == null ? 0 : 1 + avlCount(node.left) + avlCount(node.right);
     }
 
+    //recursively counts the height
     private int avlDepth(AVLTree.Node node) {
         return node == null ? 0 : 1 + Math.max(avlDepth(node.left), avlDepth(node.right));
     }
 
+    // calculate the btree size
     private int bTreeSize(BTree.Node node) {
         if (node == null) return 0;
         int total = node.keys.size();
@@ -236,6 +233,8 @@ public class TreePanel extends JPanel {
         g2.drawString("Node labels: value | h = height | BF = balance factor", 16, getHeight() - 18);
     }
 
+
+    // reorder and store the nodes in inorder manner
     private void collectAvlInOrder(AVLTree.Node node, List<AVLTree.Node> nodes) {
         if (node == null) return;
         collectAvlInOrder(node.left, nodes);
@@ -243,6 +242,7 @@ public class TreePanel extends JPanel {
         collectAvlInOrder(node.right, nodes);
     }
 
+    // assign position to all the avl nodes
     private void assignAvlPositions(AVLTree.Node node, int depth, Map<AVLTree.Node, Integer> orderIndex, int total) {
         if (node == null) return;
         int index = orderIndex.get(node);
@@ -273,12 +273,12 @@ public class TreePanel extends JPanel {
         Point p = avlPositions.get(node);
         int left = p.x - AVL_DIAMETER / 2;
         int top = p.y - AVL_DIAMETER / 2;
-        boolean searchedNode = isHighlighted(node);
+        boolean searchedNode = isHighlighted(node.key);
         g2.setColor(node.highlightedNodes==1 ? (searchedNode ?  new Color(255, 222, 140) : new Color(255, 127, 127)) : new Color(219, 234, 254));
-        //g2.setColor(searchedNode ? new Color(255, 222, 140) : new Color(219, 234, 254)); //infill color of oval
         g2.fillOval(left, top, AVL_DIAMETER, AVL_DIAMETER);
         g2.setStroke(new BasicStroke(searchedNode ? 3.0f : 2.0f));
-        g2.setColor(searchedNode ? new Color(180, 105, 20) : new Color(59, 130, 246)); //outline color of oval
+        //g2.setColor(searchedNode ? new Color(180, 105, 20) : new Color(59, 130, 246)); //outline color of oval
+        g2.setColor(new Color(59,130,246));
         g2.drawOval(left, top, AVL_DIAMETER, AVL_DIAMETER);
         String value = Integer.toString(node.key);
         g2.setFont(new Font("SansSerif", Font.BOLD, 15));

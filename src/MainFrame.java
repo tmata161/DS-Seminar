@@ -64,11 +64,12 @@ public class MainFrame extends JFrame {
         valueField.setAlignmentX(Component.LEFT_ALIGNMENT);
         valueField.setToolTipText("Enter an integer, then click an operation");
 
-        insertButton = makeButton("Insert", new Color(37, 99, 235));
-        searchButton = makeButton("Search", new Color(13, 148, 136));
-        rangeSearchButton = makeButton("Range Search (B+)", new Color(124, 58, 237));
-        deleteButton = makeButton("Delete", new Color(220, 73, 73));
-        clearButton = makeButton("Clear Tree", new Color(71, 85, 105));
+        insertButton = makeButton("Insert", new Color(26, 54, 93));
+        searchButton = makeButton("Search", new Color(27, 153, 139));
+        this.rangeSearchButton = new JButton();
+        //rangeSearchButton = makeButton("Range Search (B+)", new Color(124, 58, 237));
+        deleteButton = makeButton("Delete", new Color(217, 83, 79));
+        clearButton = makeButton("Clear Tree", new Color(74, 85, 104));
 
         controls.add(treeLabel);
         controls.add(Box.createVerticalStrut(8));
@@ -135,7 +136,7 @@ public class MainFrame extends JFrame {
             
         });
         //searchButton.addActionListener(e -> performOperation("Search"));
-        rangeSearchButton.addActionListener(e -> performRangeSearch());
+        //rangeSearchButton.addActionListener(e -> performRangeSearch());
         deleteButton.addActionListener(e -> performOperation("Delete"));
         clearButton.addActionListener(e -> clearTree());
         valueField.addActionListener(e -> performOperation("Insert"));
@@ -169,7 +170,7 @@ public class MainFrame extends JFrame {
         searchButton.setEnabled(true);
         deleteButton.setEnabled(true);
         clearButton.setEnabled(true);
-        rangeSearchButton.setEnabled("B+ Tree".equals(selected));
+        //rangeSearchButton.setEnabled("B+ Tree".equals(selected));
         treePanel.setTreeType(selected);
         treePanel.setHighlightedKey(null);
         refreshDisplayedTree();
@@ -208,7 +209,7 @@ public class MainFrame extends JFrame {
         switch (operation) {
             case "Insert":
                 valueField.setText("");
-                if ("AVL Tree".equals(selected)) {result = avlTree.insert(value);avlTree.resetHighlightedNodes(avlTree.getRoot());}
+                if ("AVL Tree".equals(selected)) {result = avlTree.insert(value);}
                 else if ("B-Tree".equals(selected)) result = bTree.insert(value);
                 else result = bPlusTree.insert(value);
                 treePanel.setHighlightedKey(result ? value : null);
@@ -216,7 +217,7 @@ public class MainFrame extends JFrame {
                         : value + " already exists. Duplicate values are not added.");
                 break;
             case "Search":
-                if ("AVL Tree".equals(selected)) {avlTree.resetHighlightedNodes(avlTree.getRoot());result = avlTree.contains(value);}
+                if ("AVL Tree".equals(selected)) {result = avlTree.searchKey(value);}
                 else if ("B-Tree".equals(selected)) result = bTree.contains(value);
                 else result = bPlusTree.contains(value);
                 treePanel.setHighlightedKey(result ? value : null);
@@ -241,44 +242,44 @@ public class MainFrame extends JFrame {
     }
 
     /** Uses the value field as the inclusive start, then asks for the inclusive end. */
-    private void performRangeSearch() {
-        if (!"B+ Tree".equals(selectedTree())) return;
-        String startText = valueField.getText().trim();
-        final int from;
-        try {
-            if (startText.isEmpty()) throw new NumberFormatException();
-            from = Integer.parseInt(startText);
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Enter a valid starting integer in the value field.",
-                    "Invalid Range", JOptionPane.WARNING_MESSAGE);
-            valueField.requestFocusInWindow();
-            return;
-        }
+    // private void performRangeSearch() {
+    //     if (!"B+ Tree".equals(selectedTree())) return;
+    //     String startText = valueField.getText().trim();
+    //     final int from;
+    //     try {
+    //         if (startText.isEmpty()) throw new NumberFormatException();
+    //         from = Integer.parseInt(startText);
+    //     } catch (NumberFormatException ex) {
+    //         JOptionPane.showMessageDialog(this, "Enter a valid starting integer in the value field.",
+    //                 "Invalid Range", JOptionPane.WARNING_MESSAGE);
+    //         valueField.requestFocusInWindow();
+    //         return;
+    //     }
 
-        String endText = JOptionPane.showInputDialog(this,
-                "Enter the inclusive ending value (must be >= " + from + "):", "Range Search", JOptionPane.QUESTION_MESSAGE);
-        if (endText == null) return;
-        final int to;
-        try {
-            to = Integer.parseInt(endText.trim());
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid 32-bit integer for the range end.",
-                    "Invalid Range", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        if (from > to) {
-            JOptionPane.showMessageDialog(this, "The start value must be less than or equal to the end value.",
-                    "Invalid Range", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    //     String endText = JOptionPane.showInputDialog(this,
+    //             "Enter the inclusive ending value (must be >= " + from + "):", "Range Search", JOptionPane.QUESTION_MESSAGE);
+    //     if (endText == null) return;
+    //     final int to;
+    //     try {
+    //         to = Integer.parseInt(endText.trim());
+    //     } catch (NumberFormatException ex) {
+    //         JOptionPane.showMessageDialog(this, "Please enter a valid 32-bit integer for the range end.",
+    //                 "Invalid Range", JOptionPane.ERROR_MESSAGE);
+    //         return;
+    //     }
+    //     if (from > to) {
+    //         JOptionPane.showMessageDialog(this, "The start value must be less than or equal to the end value.",
+    //                 "Invalid Range", JOptionPane.WARNING_MESSAGE);
+    //         return;
+    //     }
 
-        List<Integer> found = bPlusTree.rangeSearch(from, to);
-        Set<Integer> matches = new HashSet<>(found);
-        treePanel.setHighlightedKeys(matches);
-        statusLabel.setText("Range [" + from + ", " + to + "] returned " + found.size() + " key(s): " + found);
-        valueField.requestFocusInWindow();
-        valueField.selectAll();
-    }
+    //     List<Integer> found = bPlusTree.rangeSearch(from, to);
+    //     Set<Integer> matches = new HashSet<>(found);
+    //     treePanel.setHighlightedKeys(matches);
+    //     statusLabel.setText("Range [" + from + ", " + to + "] returned " + found.size() + " key(s): " + found);
+    //     valueField.requestFocusInWindow();
+    //     valueField.selectAll();
+    // }
 
     private void clearTree() {
         String selected = selectedTree();

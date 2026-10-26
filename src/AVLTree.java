@@ -40,10 +40,23 @@ public class AVLTree {
         cRoot.highlightedNodes=0;
         resetHighlightedNodes(cRoot.right);
     }
+
+    public boolean searchKey(int key){
+        Node current = root;
+        while (current != null) {
+            if (key == current.key) {
+                current.highlightedNodes=1;
+                return true;
+            }
+            current = key < current.key ? current.left : current.right;
+        }
+        return false;
+    }
+
+
     public boolean contains(int key) {
         Node current = root;
         while (current != null) {
-            current.highlightedNodes=1;
             if (key == current.key) {
                 return true;
             }
