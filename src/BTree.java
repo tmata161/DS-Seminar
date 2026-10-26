@@ -6,7 +6,7 @@ import java.util.List;
  * Supports insertion, search, deletion, and duplicate suppression.
  */
 public class BTree {
-    public static final int MIN_DEGREE = 3;
+    public static final int MIN_DEGREE = 2;
 
     public static class Node {
         public final List<Integer> keys = new ArrayList<>();
