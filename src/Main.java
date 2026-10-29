@@ -1,14 +1,15 @@
 
-import javax.swing.SwingUtilities;
-
 public class Main{
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable()  {
-            public void run() {
-                MainFrame frame = new MainFrame();
+        MainFrame frame = new MainFrame();
                 frame.setVisible(true);
-        }
-        });
+
+                //no need for this method anymore
+        // SwingUtilities.invokeLater(new Runnable()  {
+        //     public void run() {
+                
+        // }
+        // });
     }
     
 }

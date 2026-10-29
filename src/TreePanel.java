@@ -12,27 +12,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashSet;
-import java.util.Set;
 
 /** Draws the currently selected tree structure. */
 public class TreePanel extends JPanel {
-    private static final int AVL_DIAMETER = 54;
-    private static final int AVL_GAP = 92;
-    private static final int TOP_MARGIN = 60;
-    private static final int LEVEL_GAP = 110;
+    private static final int AVL_DIAMETER = 54; //sets the size of each nodes
+    private static final int AVL_GAP = 92; //sets gap between 2 nodes
+    private static final int TOP_MARGIN = 60; //gap from the top of the window
+    private static final int LEVEL_GAP = 110; //set the gap of each level
     private static final int B_KEY_WIDTH = 60;
     private static final int B_KEY_HEIGHT = 38;
     private static final int B_KEY_SPACING = 60;
-    //private static final int B_NODE_GAP = 2;
-    private static final int B_LEFT_MARGIN = 70;
+    private static final int B_LEFT_MARGIN = 70; //sets top spacing
 
     private String treeType = "AVL Tree";
     private AVLTree.Node avlRoot;
     private BTree.Node bTreeRoot;
     private BPlusTree.Node bPlusRoot;
-    private Integer highlightedKey;
-    private final Set<Integer> highlightedKeys = new HashSet<>();
+
     private final Map<AVLTree.Node, Point> avlPositions = new HashMap<>();
     private final Map<BTree.Node, BNodePosition> bPositions = new HashMap<>();
     private final Map<BPlusTree.Node, BPlusNodePosition> bPlusPositions = new HashMap<>();
@@ -41,10 +37,14 @@ public class TreePanel extends JPanel {
         int[] keyCenters;
         int centerX;
         int y;
-        BNodePosition(int[] keyCenters, int y) {
+        int subtreeLeft;
+        int subtreeRight;
+        BNodePosition(int[] keyCenters,int centerX, int y, int subtreeLeft, int subtreeRight) {
             this.keyCenters = keyCenters;
             this.y = y;
-            this.centerX = (keyCenters[0] + keyCenters[keyCenters.length - 1]) / 2;
+            this.centerX = centerX;//(keyCenters[0] + keyCenters[keyCenters.length - 1]) / 2;
+            this.subtreeLeft=subtreeLeft;
+            this.subtreeRight=subtreeRight;
         }
     }
 
@@ -97,34 +97,25 @@ public class TreePanel extends JPanel {
         repaint();
     }
 
-    public void setHighlightedKey(Integer key) {
-        this.highlightedKey = key;
-        this.highlightedKeys.clear(); //clear the hashset
-        repaint();
-    }
 
-    private boolean isHighlighted(int key) {
-        return (highlightedKey != null && highlightedKey == key) || highlightedKeys.contains(key);
-    }
+    // public void clearTree() {
+    //     avlRoot = null;
+    //     bTreeRoot = null;
+    //     bPlusRoot = null;
+    //     highlightedKey = null;
+    //     highlightedKeys.clear();
+    //     updatePreferredSize();
+    //     revalidate();
+    //     repaint();
+    // }
 
-    public void clearTree() {
-        avlRoot = null;
-        bTreeRoot = null;
-        bPlusRoot = null;
-        highlightedKey = null;
-        highlightedKeys.clear();
-        updatePreferredSize();
-        revalidate();
-        repaint();
-    }
-
+    //updates the size of tree panel according to the width and depth of the tree
     private void updatePreferredSize() {
         int width;
         int depth;
         if ("AVL Tree".equals(treeType)) {
             width = Math.max(700, 110 + avlCount(avlRoot) * AVL_GAP);
             depth = avlDepth(avlRoot);
-            System.out.println("width: "+width+"\ndepth: "+depth);
         } else if ("B-Tree".equals(treeType)) {
             width = Math.max(700, 2 * B_LEFT_MARGIN + Math.max(1, bTreeSize(bTreeRoot)) * B_KEY_SPACING);
             depth = bTreeDepth(bTreeRoot);
@@ -137,7 +128,7 @@ public class TreePanel extends JPanel {
         setPreferredSize(new Dimension(width, height));
     }
 
-    //recursively counts the width
+    //recursively counts the number of nodes
     private int avlCount(AVLTree.Node node) {
         return node == null ? 0 : 1 + avlCount(node.left) + avlCount(node.right);
     }
@@ -155,11 +146,13 @@ public class TreePanel extends JPanel {
         return total;
     }
 
+    // calculates btree depth
     private int bTreeDepth(BTree.Node node) {
         if (node == null) return 0;
         if (node.leaf) return 1;
         return 1 + bTreeDepth(node.children.get(0));
     }
+
 
     private int bPlusSize(BPlusTree.Node node) {
         if (node == null) return 0;
@@ -202,6 +195,7 @@ public class TreePanel extends JPanel {
         }
     }
 
+    //that text which is shown in middle
     private void drawPlaceholder(Graphics2D g2, String title, String subtitle) {
         g2.setFont(new Font("SansSerif", Font.BOLD, 22));
         g2.setColor(new Color(100, 110, 125));
@@ -273,11 +267,9 @@ public class TreePanel extends JPanel {
         Point p = avlPositions.get(node);
         int left = p.x - AVL_DIAMETER / 2;
         int top = p.y - AVL_DIAMETER / 2;
-        boolean searchedNode = isHighlighted(node.key);
-        g2.setColor(node.highlightedNodes==1 ? (searchedNode ?  new Color(255, 222, 140) : new Color(255, 127, 127)) : new Color(219, 234, 254));
+        g2.setColor(node.highlightedNodes==1 ? new Color(255, 222, 140) : new Color(219, 234, 254));
         g2.fillOval(left, top, AVL_DIAMETER, AVL_DIAMETER);
-        g2.setStroke(new BasicStroke(searchedNode ? 3.0f : 2.0f));
-        //g2.setColor(searchedNode ? new Color(180, 105, 20) : new Color(59, 130, 246)); //outline color of oval
+        g2.setStroke(new BasicStroke(3.0f));
         g2.setColor(new Color(59,130,246));
         g2.drawOval(left, top, AVL_DIAMETER, AVL_DIAMETER);
         String value = Integer.toString(node.key);
@@ -317,16 +309,35 @@ public class TreePanel extends JPanel {
         g2.drawString("B-Tree order 4 | Each rectangle is a key slot | highlighted key shown in amber", 16, getHeight() - 18);
     }
 
-    private void assignBPositions(BTree.Node node, int depth, int[] cursor) {
-        if (node == null) return;
+     private BNodePosition assignBPositions(BTree.Node node, int depth, int[] cursor) {
+        int y = TOP_MARGIN + depth * LEVEL_GAP;
         int[] centers = new int[node.keys.size()];
-        for (int i = 0; i < node.keys.size(); i++) {
-            if (!node.leaf) assignBPositions(node.children.get(i), depth + 1, cursor);
-            centers[i] = B_LEFT_MARGIN + cursor[0] * B_KEY_SPACING;
-            cursor[0]++;
+        if (node.leaf) {
+            for (int i = 0; i < centers.length; i++) {
+                centers[i] = B_LEFT_MARGIN + cursor[0] * B_KEY_SPACING;
+                cursor[0]++;
+            }
+            cursor[0]++; // visible gap between neighbouring leaves
+            int left = centers[0] - B_KEY_WIDTH / 2;
+            int right = centers[centers.length - 1] + B_KEY_WIDTH / 2;
+            BNodePosition pos = new BNodePosition(centers, (centers[0] + centers[centers.length - 1]) / 2,
+                    y, left, right);
+            bPositions.put(node, pos);
+            return pos;
         }
-        if (!node.leaf) assignBPositions(node.children.get(node.keys.size()), depth + 1, cursor);
-        bPositions.put(node, new BNodePosition(centers, TOP_MARGIN + depth * LEVEL_GAP));
+
+        List<BNodePosition> childPositions = new ArrayList<>();
+        for (BTree.Node child : node.children) {
+            childPositions.add(assignBPositions(child, depth + 1, cursor));
+        }
+        BNodePosition first = childPositions.get(0);
+        BNodePosition last = childPositions.get(childPositions.size() - 1);
+        int center = (first.subtreeLeft + last.subtreeRight) / 2;
+        int start = center - ((centers.length - 1) * B_KEY_SPACING) / 2;
+        for (int i = 0; i < centers.length; i++) centers[i] = start + i * B_KEY_SPACING;
+        BNodePosition pos = new BNodePosition(centers, center, y, first.subtreeLeft, last.subtreeRight);
+        bPositions.put(node, pos);
+        return pos;
     }
 
     private void drawBEdges(Graphics2D g2, BTree.Node node) {
@@ -351,11 +362,10 @@ public class TreePanel extends JPanel {
             int key = node.keys.get(i);
             int x = p.keyCenters[i] - B_KEY_WIDTH / 2;
             int y = p.y - B_KEY_HEIGHT / 2;
-            boolean highlighted = isHighlighted(key);
-            g2.setColor(highlighted ? new Color(255, 222, 140) : new Color(219, 234, 254));
+            g2.setColor(new Color(255, 222, 140));
             g2.fillRoundRect(x, y, B_KEY_WIDTH, B_KEY_HEIGHT, 8, 8);
-            g2.setStroke(new BasicStroke(highlighted ? 3.0f : 2.0f));
-            g2.setColor(highlighted ? new Color(180, 105, 20) : new Color(59, 130, 246));
+            g2.setStroke(new BasicStroke(3.0f));
+            g2.setColor(new Color(180, 105, 20));
             g2.drawRoundRect(x, y, B_KEY_WIDTH, B_KEY_HEIGHT, 8, 8);
             String value = Integer.toString(key);
             g2.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -486,17 +496,14 @@ public class TreePanel extends JPanel {
         if (node == null) return;
         BPlusNodePosition pos = bPlusPositions.get(node);
         int y = pos.y - B_KEY_HEIGHT / 2;
-        Color normalFill = node.leaf ? new Color(209, 250, 229) : new Color(219, 234, 254);
-        Color normalBorder = node.leaf ? new Color(13, 148, 136) : new Color(59, 130, 246);
 
         for (int i = 0; i < node.keys.size(); i++) {
             int key = node.keys.get(i);
             int x = pos.keyCenters[i] - B_KEY_WIDTH / 2;
-            boolean highlighted = isHighlighted(key);
-            g2.setColor(highlighted ? new Color(255, 222, 140) : normalFill);
+            g2.setColor(new Color(255, 222, 140));
             g2.fillRoundRect(x, y, B_KEY_WIDTH, B_KEY_HEIGHT, 8, 8);
-            g2.setStroke(new BasicStroke(highlighted ? 3.0f : 2.0f));
-            g2.setColor(highlighted ? new Color(180, 105, 20) : normalBorder);
+            g2.setStroke(new BasicStroke(3.0f));
+            g2.setColor(new Color(180, 105, 20));
             g2.drawRoundRect(x, y, B_KEY_WIDTH, B_KEY_HEIGHT, 8, 8);
             String value = Integer.toString(key);
             g2.setFont(new Font("SansSerif", Font.BOLD, 14));
