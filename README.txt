@@ -20,8 +20,8 @@ Run in PowerShell from this project folder:
 
 Implemented features:
 - AVL Tree: insertion, search, deletion, four balancing rotation cases, height and balance factor
-- B-Tree: order 4, insertion, search, deletion, node splits, merges, and borrowing
-- B+ Tree: order 4, internal separator keys, all data stored in leaves, leaf splitting, deletion rebalancing,
+- B-Tree: order m, insertion, search, deletion, node splits, merges, and borrowing
+- B+ Tree: order m, internal separator keys, all data stored in leaves, leaf splitting, deletion rebalancing,
   linked leaf nodes, range search, key highlighting, tree height and leaf count
 - Duplicate keys are not inserted
 - Search results are highlighted; range search highlights all matching leaf keys

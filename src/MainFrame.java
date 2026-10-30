@@ -18,7 +18,7 @@ public class MainFrame extends JFrame implements ActionListener{
     private final JButton clearButton;
     
     String helpTextString="<html><div style='width:180px'>AVL Tree:self-balancing binary search tree.<br><br>B-Tree: B-Tree of order m; nodes can contain up to m-1 sorted keys.<br><br>B+ Tree: In B+ Tree data is stored in linked leaves; internal keys guide the search. Use Range Search to query an interval.</div></html>";
-
+    public static Integer setSearchedKey;
     //constructor of main frame class
     public MainFrame() {
 
@@ -159,12 +159,13 @@ public class MainFrame extends JFrame implements ActionListener{
         if ("AVL Tree".equals(selected)) {
             statusLabel.setText("AVL Tree selected. Insert, search, or delete an integer.");
         } else if ("B-Tree".equals(selected)) {
-            statusLabel.setText("B-Tree selected (order 4). Insert, search, or delete an integer.");
+            statusLabel.setText("B-Tree selected (order "+BTree.ORDER+"). Insert, search, or delete an integer.");
         } else {
-            statusLabel.setText("B+ Tree selected (order 4). All data keys are in linked leaves.");
+            statusLabel.setText("B+ Tree selected (order "+BPlusTree.ORDER+"). All data keys are in linked leaves.");
         }
     }
 
+    
     private void performOperation(String operation) {
         String selected = selectedTree();
         String text = valueField.getText().trim();
@@ -185,7 +186,10 @@ public class MainFrame extends JFrame implements ActionListener{
             valueField.requestFocusInWindow();
             return;
         }
-
+        avlTree.resetHighlightedNodes();
+        bTree.resetSearchKey();
+        bPlusTree.resetSearchKey();
+        setSearchedKey=null;
         boolean result;
         switch (operation) {
             case "Insert":
@@ -198,8 +202,14 @@ public class MainFrame extends JFrame implements ActionListener{
                 break;
             case "Search":
                 if ("AVL Tree".equals(selected)) {result = avlTree.searchKey(value);}
-                else if ("B-Tree".equals(selected)) result = bTree.contains(value);
-                else result = bPlusTree.contains(value);
+                else if ("B-Tree".equals(selected)){
+                     result = bTree.searchKey(bTree.getRoot(), value);
+                     setCurrentValue(text);
+                }
+                else {
+                    result = bPlusTree.contains(value);
+                    setCurrentValue(text);
+                }
                 statusLabel.setText(result ? "Found " + value + " — highlighted in the tree."
                         : value + " was not found in the tree.");
                 break;
@@ -217,6 +227,7 @@ public class MainFrame extends JFrame implements ActionListener{
         refreshDisplayedTree();
         valueField.requestFocusInWindow();
         valueField.selectAll();
+       
     }
 
     private void clearTree() {
@@ -251,6 +262,14 @@ public class MainFrame extends JFrame implements ActionListener{
         else if(Character.isDigit(e.getActionCommand().charAt(0)))
             performOperation("Insert");
         else handleTreeSelection();
+    }
+
+    private void setCurrentValue(String text){
+        try {
+            setSearchedKey = Integer.parseInt(text);
+        } catch (NumberFormatException ex) {
+           ex.printStackTrace();
+        }
     }
 
     

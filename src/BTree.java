@@ -2,13 +2,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * B-Tree with minimum degree 2 (order 4): each node may hold up to 3 keys.
- * Supports insertion, search, deletion, and duplicate suppression.
+ * B-Tree with given parameters
  */
 public class BTree {
+    public static final int ORDER = 5; //max number of children
+    public static final int MIN_INTERNAL_CHILDREN = (int) Math.ceil(ORDER/2);
+    public static final int MAX_KEYS = ORDER-1;
+    public static final int MIN_KEYS = (int) Math.ceil(ORDER/2)-1;
     public static final int MIN_DEGREE = 2;
 
     public static class Node {
+        public Integer highlightedKey;
         public final List<Integer> keys = new ArrayList<>();
         public final List<Node> children = new ArrayList<>();
         public boolean leaf = true;
@@ -16,7 +20,7 @@ public class BTree {
 
     private Node root;
     private int size;
-
+    private static Node searchNode;
     public Node getRoot() { return root; }
     public int size() { return size; }
     public boolean isEmpty() { return root == null; }
@@ -42,6 +46,24 @@ public class BTree {
         return search(node.children.get(i), key);
     }
 
+    public boolean searchKey(Node node, int key) {
+        if (node == null) return false;
+        int i = 0;
+        while (i < node.keys.size() && key > node.keys.get(i)) i++;
+        if (i < node.keys.size() && key == node.keys.get(i)){ 
+            searchNode=node;
+            node.highlightedKey=node.keys.get(i);
+            return node!=null;
+        }
+        if (node.leaf) return false;
+        return searchKey(node.children.get(i), key);
+    }
+
+    public void resetSearchKey(){
+        if(searchNode!=null){
+            searchNode.highlightedKey=null;
+        }
+    }
     public boolean insert(int key) {
         if (contains(key)) return false;
         if (root == null) {
@@ -50,7 +72,7 @@ public class BTree {
             size = 1;
             return true;
         }
-        if (root.keys.size() == 2 * MIN_DEGREE - 1) {
+        if (root.keys.size() == MAX_KEYS) { //2 * MIN_DEGREE - 1
             Node newRoot = new Node();
             newRoot.leaf = false;
             newRoot.children.add(root);
@@ -75,7 +97,7 @@ public class BTree {
         }
         while (i >= 0 && key < node.keys.get(i)) i--;
         i++;
-        if (node.children.get(i).keys.size() == 2 * MIN_DEGREE - 1) {
+        if (node.children.get(i).keys.size() == MAX_KEYS) { //2 * MIN_DEGREE - 1
             splitChild(node, i);
             if (key > node.keys.get(i)) i++;
         }
@@ -87,15 +109,15 @@ public class BTree {
         Node sibling = new Node();
         sibling.leaf = full.leaf;
 
-        int median = full.keys.get(MIN_DEGREE - 1);
-        sibling.keys.addAll(new ArrayList<>(full.keys.subList(MIN_DEGREE, full.keys.size())));
-        while (full.keys.size() > MIN_DEGREE - 1) {
+        int median = full.keys.get(MIN_KEYS);
+        sibling.keys.addAll(new ArrayList<>(full.keys.subList(MIN_INTERNAL_CHILDREN, full.keys.size())));
+        while (full.keys.size() > MIN_KEYS) {
             full.keys.remove(full.keys.size() - 1);
         }
 
         if (!full.leaf) {
-            sibling.children.addAll(new ArrayList<>(full.children.subList(MIN_DEGREE, full.children.size())));
-            while (full.children.size() > MIN_DEGREE) {
+            sibling.children.addAll(new ArrayList<>(full.children.subList(MIN_INTERNAL_CHILDREN, full.children.size())));
+            while (full.children.size() > MIN_INTERNAL_CHILDREN) {
                 full.children.remove(full.children.size() - 1);
             }
         }
@@ -126,7 +148,7 @@ public class BTree {
 
         if (node.leaf) return;
         boolean wasLastChild = idx == node.keys.size();
-        if (node.children.get(idx).keys.size() < MIN_DEGREE) {
+        if (node.children.get(idx).keys.size() < MIN_INTERNAL_CHILDREN) {
             fillChild(node, idx);
         }
         if (wasLastChild && idx > node.keys.size()) {
@@ -146,11 +168,11 @@ public class BTree {
         int key = node.keys.get(idx);
         Node left = node.children.get(idx);
         Node right = node.children.get(idx + 1);
-        if (left.keys.size() >= MIN_DEGREE) {
+        if (left.keys.size() >= MIN_INTERNAL_CHILDREN) {
             int predecessor = predecessor(left);
             node.keys.set(idx, predecessor);
             deleteFromNode(left, predecessor);
-        } else if (right.keys.size() >= MIN_DEGREE) {
+        } else if (right.keys.size() >= MIN_INTERNAL_CHILDREN) {
             int successor = successor(right);
             node.keys.set(idx, successor);
             deleteFromNode(right, successor);
@@ -171,10 +193,10 @@ public class BTree {
     }
 
     private void fillChild(Node parent, int idx) {
-        if (idx > 0 && parent.children.get(idx - 1).keys.size() >= MIN_DEGREE) {
+        if (idx > 0 && parent.children.get(idx - 1).keys.size() >= MIN_INTERNAL_CHILDREN) {
             borrowFromPrevious(parent, idx);
         } else if (idx < parent.keys.size()
-                && parent.children.get(idx + 1).keys.size() >= MIN_DEGREE) {
+                && parent.children.get(idx + 1).keys.size() >= MIN_INTERNAL_CHILDREN) {
             borrowFromNext(parent, idx);
         } else {
             if (idx < parent.keys.size()) mergeChildren(parent, idx);

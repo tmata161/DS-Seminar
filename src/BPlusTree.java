@@ -2,17 +2,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * B+ Tree of order 4. Internal-node keys are separators; all actual data keys
- * live in the leaf nodes. Leaf nodes are linked from left to right.
- * Supports insertion, search, deletion, range search, and duplicate suppression.
+ * B+ Tree with given parameters
  */
 public class BPlusTree {
-    public static final int ORDER = 4;
+    public static final int ORDER = 5;
     private static final int MAX_KEYS = ORDER - 1;
-    private static final int MIN_LEAF_KEYS = 2;
-    private static final int MIN_INTERNAL_CHILDREN = 2;
+    private static final int MIN_LEAF_KEYS = (int) (Math.ceil(ORDER/2)-1);
+    private static final int MIN_INTERNAL_CHILDREN = (int)(Math.ceil(ORDER/2));
 
     public static class Node {
+        public Integer highlightedKey;
         public final boolean leaf;
         public final List<Integer> keys = new ArrayList<>();
         public final List<Node> children = new ArrayList<>();
@@ -23,9 +22,9 @@ public class BPlusTree {
         }
     }
 
+    private static Node searchNode;
     private Node root;
     private int size;
-
     public Node getRoot() { return root; }
     public int size() { return size; }
     public boolean isEmpty() { return root == null; }
@@ -45,9 +44,20 @@ public class BPlusTree {
         Node leaf = findLeaf(key);
         if (leaf == null) return false;
         int index = lowerBound(leaf.keys, key);
+        if(index < leaf.keys.size() && leaf.keys.get(index)==key){
+            searchNode=leaf;
+            searchNode.highlightedKey=leaf.keys.get(index);
+        }
         return index < leaf.keys.size() && leaf.keys.get(index) == key;
     }
 
+
+    public void resetSearchKey(){
+        if(searchNode!=null){
+            searchNode.highlightedKey=null;
+            searchNode=null;
+        }
+    }
     public boolean insert(int key) {
         if (contains(key)) return false;
         if (root == null) {
@@ -93,7 +103,7 @@ public class BPlusTree {
         if (node.children.size() <= ORDER) return null;
 
         Node right = new Node(false);
-        int splitAt = node.children.size() / 2; // 5 children -> 2 and 3
+        int splitAt = node.children.size() / 2; 
         right.children.addAll(new ArrayList<>(node.children.subList(splitAt, node.children.size())));
         node.children.subList(splitAt, node.children.size()).clear();
         refreshSeparators(node);
@@ -209,21 +219,21 @@ public class BPlusTree {
     }
 
     /** Returns all data keys in the inclusive range [from, to], in sorted order. */
-    public List<Integer> rangeSearch(int from, int to) {
-        List<Integer> result = new ArrayList<>();
-        if (from > to || root == null) return result;
-        Node leaf = findLeaf(from);
-        if (leaf == null) return result;
-        while (leaf != null) {
-            for (int key : leaf.keys) {
-                if (key < from) continue;
-                if (key > to) return result;
-                result.add(key);
-            }
-            leaf = leaf.next;
-        }
-        return result;
-    }
+    // public List<Integer> rangeSearch(int from, int to) {
+    //     List<Integer> result = new ArrayList<>();
+    //     if (from > to || root == null) return result;
+    //     Node leaf = findLeaf(from);
+    //     if (leaf == null) return result;
+    //     while (leaf != null) {
+    //         for (int key : leaf.keys) {
+    //             if (key < from) continue;
+    //             if (key > to) return result;
+    //             result.add(key);
+    //         }
+    //         leaf = leaf.next;
+    //     }
+    //     return result;
+    // }
 
     public void clear() {
         root = null;

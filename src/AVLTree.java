@@ -22,7 +22,7 @@ public class AVLTree {
     public Node getRoot() {
         return root;
     }
-
+    public static Node highlightedNode;
     public boolean insert(int key) {
         //if key already present then just return false
         if (contains(key)) {
@@ -33,19 +33,21 @@ public class AVLTree {
         return true;
     }
 
-    //this method checks if a key is present or not
-    public void resetHighlightedNodes(Node cRoot){
-        if(cRoot==null) return;
-        resetHighlightedNodes(cRoot.left);
-        cRoot.highlightedNodes=0;
-        resetHighlightedNodes(cRoot.right);
+    //resets the highlighted nodes (used after searchkey method)
+    public void resetHighlightedNodes(){
+        if(highlightedNode!=null){
+        highlightedNode.highlightedNodes=0;
+        highlightedNode=null;
+        }
     }
 
+    //used to search for a key and highlight it
     public boolean searchKey(int key){
         Node current = root;
         while (current != null) {
             if (key == current.key) {
-                current.highlightedNodes=1;
+                highlightedNode=current;
+                highlightedNode.highlightedNodes=1;
                 return true;
             }
             current = key < current.key ? current.left : current.right;
@@ -54,6 +56,7 @@ public class AVLTree {
     }
 
 
+    //checks if the key is already present or not
     public boolean contains(int key) {
         Node current = root;
         while (current != null) {
@@ -94,6 +97,7 @@ public class AVLTree {
         return 1 + size(node.left) + size(node.right);
     }
 
+    //insert the key using recursive method
     private Node insert(Node node, int key) {
         //if no nodes are present
         if (node == null) {
@@ -150,7 +154,7 @@ public class AVLTree {
     private Node balance(Node node) {
         int factor = balanceFactor(node);
 
-        // Left-heavy subtree.
+        // Left-heavy tree.
         if (factor > 1) {
             if (balanceFactor(node.left) < 0) {
                 node.left = rotateLeft(node.left); // Left-Right case
@@ -158,7 +162,7 @@ public class AVLTree {
             return rotateRight(node); // Left-Left case
         }
 
-        // Right-heavy subtree.
+        // Right-heavy tree.
         if (factor < -1) {
             if (balanceFactor(node.right) > 0) {
                 node.right = rotateRight(node.right); // Right-Left case

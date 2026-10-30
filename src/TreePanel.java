@@ -294,7 +294,8 @@ public class TreePanel extends JPanel {
     // ---------------- B-Tree rendering ----------------
     private void drawBTree(Graphics2D g2) {
         if (bTreeRoot == null) {
-            drawPlaceholder(g2, "Your B-Tree will appear here", "Order 4 B-Tree: each node can contain up to 3 keys.");
+            drawPlaceholder(g2, "Your B-Tree will appear here", 
+            "Insert values to build B-Tree of Order "+BTree.ORDER);
             return;
         }
         bPositions.clear();
@@ -306,7 +307,7 @@ public class TreePanel extends JPanel {
         drawBNodes(g2, bTreeRoot);
         g2.setFont(new Font("SansSerif", Font.PLAIN, 12));
         g2.setColor(new Color(95, 105, 120));
-        g2.drawString("B-Tree order 4 | Each rectangle is a key slot | highlighted key shown in amber", 16, getHeight() - 18);
+        g2.drawString("B-Tree order "+BTree.ORDER+" | Each rectangle is a key slot | highlighted key shown in amber", 16, getHeight() - 18);
     }
 
      private BNodePosition assignBPositions(BTree.Node node, int depth, int[] cursor) {
@@ -362,7 +363,7 @@ public class TreePanel extends JPanel {
             int key = node.keys.get(i);
             int x = p.keyCenters[i] - B_KEY_WIDTH / 2;
             int y = p.y - B_KEY_HEIGHT / 2;
-            g2.setColor(new Color(255, 222, 140));
+            g2.setColor((MainFrame.setSearchedKey!=null&&node.highlightedKey==MainFrame.setSearchedKey) ? new Color(255, 222, 140) : new Color(219, 234, 254));//new Color(255, 222, 140));
             g2.fillRoundRect(x, y, B_KEY_WIDTH, B_KEY_HEIGHT, 8, 8);
             g2.setStroke(new BasicStroke(3.0f));
             g2.setColor(new Color(180, 105, 20));
@@ -380,7 +381,7 @@ public class TreePanel extends JPanel {
     private void drawBPlusTree(Graphics2D g2) {
         if (bPlusRoot == null) {
             drawPlaceholder(g2, "Your B+ Tree will appear here",
-                    "Insert values to build an order 4 B+ Tree with linked leaf nodes.");
+                    "Insert values to build B+ Tree of Order "+BPlusTree.ORDER);
             return;
         }
         bPlusPositions.clear();
@@ -500,7 +501,7 @@ public class TreePanel extends JPanel {
         for (int i = 0; i < node.keys.size(); i++) {
             int key = node.keys.get(i);
             int x = pos.keyCenters[i] - B_KEY_WIDTH / 2;
-            g2.setColor(new Color(255, 222, 140));
+            g2.setColor((MainFrame.setSearchedKey!=null && node.highlightedKey==MainFrame.setSearchedKey)? new Color(255, 222, 140) : new Color(219, 234, 254)); //new Color(255, 222, 140)
             g2.fillRoundRect(x, y, B_KEY_WIDTH, B_KEY_HEIGHT, 8, 8);
             g2.setStroke(new BasicStroke(3.0f));
             g2.setColor(new Color(180, 105, 20));
